@@ -1,13 +1,13 @@
 const { Client, Events, GatewayIntentBits } = require('discord.js');
 const axios = require('axios'); // For REST API requests
+let SummarizerManager = require("node-summarizer").SummarizerManager;
 require('dotenv').config();
 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.MessageReactions
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -44,15 +44,20 @@ client.on(Events.MessageCreate, async (message) => {
 
 async function processMessageForUpvotes(message) {
     const embed = message.embeds[0];
-    if (!embed || !embed.title || !embed.description) return;
+    if (!embed || !embed.description) return;
 
     const upvoteReaction = message.reactions.cache.get(UPVOTE_EMOJI);
     if (upvoteReaction) {
         const upvoteUsers = await upvoteReaction.users.fetch();
         
+        console.log(upvoteUsers.size)
         if (upvoteUsers.size >= UPVOTE_THRESHOLD) {
+            
+            // Need to work on the summary for name, figuring out a best way to summarize. Maybe with the help from AI to summarize for name?
+            let summarizeTitle = new SummarizerManager(embed.description,1);
+            let summary = summarizeTitle.getSummaryByFrequency().summary
             const postData = {
-                title: embed.title,
+                name: summary,
                 description_html: `${embed.description}\n\n${upvoteUsers.size} upvoted this suggestion`
             };
 
@@ -71,6 +76,9 @@ async function processMessageForUpvotes(message) {
                 console.error(`Failed to post to API: ${error.message}`);
             }
         }
+    }
+    else {
+        console.log("Failed");
     }
 }
 
