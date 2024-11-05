@@ -56,6 +56,11 @@ async function processMessageForUpvotes(message) {
             // Need to work on the summary for name, figuring out a best way to summarize. Maybe with the help from AI to summarize for name?
             let summarizeTitle = new SummarizerManager(embed.description,1);
             let summary = summarizeTitle.getSummaryByFrequency().summary
+
+            if (summary.length > 60) {
+                summary = summary.split(" ").slice(0, 10).join(" ");
+            }
+
             const postData = {
                 name: summary,
                 description_html: `${embed.description}\n\n${upvoteUsers.size} upvoted this suggestion`
